@@ -1,4 +1,4 @@
-# Hardware Registers
+# Hardware Register Traits
 
 [![Build Status][build-image]][build-link]
 [![Safety Dance][safety-image]][safety-link]

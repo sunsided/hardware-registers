@@ -1,5 +1,7 @@
+//! # Hardware Register Traits
+//!
 //! Generic, embedded-friendly hardware registers support, including
-//! traits and types for understanding I2C registers.
+//! traits and types for understanding I²C registers.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
