@@ -2,6 +2,7 @@
 
 [![Build Status][build-image]][build-link]
 [![Safety Dance][safety-image]][safety-link]
+[![codecov][codecov-image]][codecov-link]
 ![MSRV][msrv-image]
 [![EUPL 1.2 licensed][license-eupl-image]][license-eupl-link]
 [![Apache 2.0 licensed][license-apache-image]][license-apache-link]
@@ -55,5 +56,11 @@ Triple licensed under your choice of either of:
 [license-eupl-link]: https://github.com/sunsided/hardware-registers/blob/develop/LICENSE-EUPL
 
 [embedded-hal]: https://docs.rs/embedded-hal/
+
+
+[codecov-image]: https://codecov.io/gh/sunsided/hardware-registers/graph/badge.svg?token=lYrBfZQ1nh
+
+[codecov-link]: https://codecov.io/gh/sunsided/hardware-registers
+
 
 [cc]: https://contributor-covenant.org
