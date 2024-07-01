@@ -45,6 +45,27 @@ where
 {
 }
 
+/// Conversion to bits/bytes.
+pub trait ToBits {
+    /// The target type.
+    type Target;
+
+    /// Converts the value into an underlying bit/byte representation
+    fn to_bits(&self) -> Self::Target;
+}
+
+/// Conversion from bits/bytes.
+pub trait FromBits<B>: Sized {
+    /// Converts the value into an underlying bit/byte representation
+    #[inline]
+    fn from_bits(value: B) -> Self {
+        Self::from_bits_ref(&value)
+    }
+
+    /// Converts the value into an underlying bit/byte representation
+    fn from_bits_ref(value: &B) -> Self;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

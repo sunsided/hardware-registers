@@ -6,10 +6,11 @@ mod register_address;
 pub use crate::i2c::device_address::{DeviceAddress, DeviceAddress10, DeviceAddress7};
 pub use crate::i2c::register_address::{RegisterAddress, RegisterAddress16, RegisterAddress8};
 use crate::sizes::{RegisterSizeInformation, R1, R2};
-use crate::{HardwareRegister, WritableHardwareRegister};
+use crate::{FromBits, HardwareRegister, ToBits, WritableHardwareRegister};
 
 /// A readable I²C register.
-pub trait I2CRegister<D, R, Size>: HardwareRegister<Size>
+pub trait I2CRegister<D, R, Size>:
+    HardwareRegister<Size> + ToBits<Target = Self::Backing> + FromBits<Self::Backing>
 where
     D: DeviceAddress,
     R: RegisterAddress,
@@ -21,10 +22,8 @@ where
     /// The register address
     const REGISTER_ADDRESS: R;
 
-    /*
     /// The backing type for the register, e.g. `u8` for an 8-bit register, or `u16` for a 10-bit register.
     type Backing;
-    */
 }
 
 /// A writable I²C register.
@@ -48,7 +47,8 @@ where
 }
 
 /// Marker trait for readable 8-bit I²C registers.
-pub trait I2CRegister8<D>: I2CRegister<D, RegisterAddress8, R1> + HardwareRegister<R1> + Copy + Clone
+pub trait I2CRegister8<D>:
+    I2CRegister<D, RegisterAddress8, R1, Backing = u8> + HardwareRegister<R1> + Copy + Clone + ToBits<Target = u8> + FromBits<u8>
 where
     D: DeviceAddress,
 {
@@ -63,7 +63,8 @@ where
 }
 
 /// Marker trait for readable 16-bit I²C registers.
-pub trait I2CRegister16<D>: I2CRegister<D, RegisterAddress16, R2> + HardwareRegister<R2> + Copy + Clone
+pub trait I2CRegister16<D>:
+    I2CRegister<D, RegisterAddress16, R2> + HardwareRegister<R2> + Copy + Clone
 where
     D: DeviceAddress,
 {
@@ -80,7 +81,7 @@ where
 /// Auto-implement [`I2CRegister8`] for any fitting register.
 impl<I, D> I2CRegister8<D> for I
 where
-    I: I2CRegister<D, RegisterAddress8, R1> + WritableHardwareRegister<R1> + Copy + Clone,
+    I: I2CRegister<D, RegisterAddress8, R1, Backing = u8> + WritableHardwareRegister<R1> + Copy + Clone + ToBits<Target = u8> + FromBits<u8>,
     D: DeviceAddress,
 {
 }
