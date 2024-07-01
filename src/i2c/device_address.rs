@@ -10,21 +10,19 @@ pub trait DeviceAddress {
     }
 }
 
-/// Implements 8-bit device addresses.
-impl DeviceAddress for u8 {
-    const ADDR_BITS: usize = 8;
-}
-
-/// An 8-bit device address.
+/// An 7-bit device address.
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 #[allow(clippy::module_name_repetitions)]
-pub struct DeviceAddress8(u8);
+pub struct DeviceAddress7(u8);
 
-impl DeviceAddress8 {
-    /// Constructs a new [`DeviceAddress8`] from a specified value.
+impl DeviceAddress7 {
+    /// Constructs a new [`DeviceAddress7`] from a specified value.
+    ///
+    /// To ensure the provided value is a valid 7-bit address, the value is masked
+    /// with `0b0111_1111`.
     #[must_use]
     pub const fn new(address: u8) -> Self {
-        Self(address)
+        Self(address & 0b0111_1111_u8)
     }
 
     /// Consumes self and returns the inner value.
@@ -34,11 +32,11 @@ impl DeviceAddress8 {
     }
 }
 
-impl DeviceAddress for DeviceAddress8 {
-    const ADDR_BITS: usize = 8;
+impl DeviceAddress for DeviceAddress7 {
+    const ADDR_BITS: usize = 7;
 }
 
-impl From<u8> for DeviceAddress8 {
+impl From<u8> for DeviceAddress7 {
     fn from(value: u8) -> Self {
         Self(value)
     }
@@ -82,13 +80,13 @@ impl From<u16> for DeviceAddress10 {
     }
 }
 
-impl From<DeviceAddress8> for DeviceAddress10 {
-    fn from(value: DeviceAddress8) -> Self {
+impl From<DeviceAddress7> for DeviceAddress10 {
+    fn from(value: DeviceAddress7) -> Self {
         Self(value.into_inner().into())
     }
 }
 
-impl TryFrom<DeviceAddress10> for DeviceAddress8 {
+impl TryFrom<DeviceAddress10> for DeviceAddress7 {
     type Error = <u16 as TryInto<u8>>::Error;
 
     fn try_from(value: DeviceAddress10) -> Result<Self, Self::Error> {
@@ -98,11 +96,11 @@ impl TryFrom<DeviceAddress10> for DeviceAddress8 {
     }
 }
 
-impl core::fmt::Debug for DeviceAddress8 {
+impl core::fmt::Debug for DeviceAddress7 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "0x{:02X}", self.0)?;
         f.write_str(" (")?;
-        write!(f, "{:08b}", self.0)?;
+        write!(f, "{:07b}", self.0)?;
         f.write_str(")")
     }
 }
@@ -118,7 +116,7 @@ impl core::fmt::Debug for DeviceAddress10 {
 
 #[cfg(feature = "std")]
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
-impl std::fmt::Display for DeviceAddress8 {
+impl std::fmt::Display for DeviceAddress7 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self:?}")
     }
@@ -137,17 +135,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn dev8_from_u8() {
-        let addr = DeviceAddress8::from(0b1111_0000);
-        assert_eq!(addr.into_inner(), 0b1111_0000);
-        assert_eq!(addr.addr_bits(), 8);
+    fn dev7_from_u8() {
+        let addr = DeviceAddress7::from(0b111_0000);
+        assert_eq!(addr.into_inner(), 0b111_0000);
+        assert_eq!(addr.addr_bits(), 7);
     }
 
     #[test]
     fn dev10_from_u8() {
-        let addr = DeviceAddress10::from(0b1111_0000_u8);
-        assert_eq!(addr.into_inner(), 0b1111_0000);
+        let addr = DeviceAddress10::from(0b0111_0000_u8);
+        assert_eq!(addr.into_inner(), 0b111_0000);
         assert_eq!(addr.addr_bits(), 10);
+    }
+
+    #[test]
+    fn dev7_from_u8_masked() {
+        let addr = DeviceAddress7::from(0b1111_0000_u8);
+        assert_eq!(addr.into_inner(), 0b111_0000);
     }
 
     #[test]
@@ -163,23 +167,23 @@ mod tests {
     }
 
     #[test]
-    fn dev10_from_dev8() {
-        let addr = DeviceAddress8::from(0b1111_0000_u8);
+    fn dev10_from_dev7() {
+        let addr = DeviceAddress7::from(0b1111_0000_u8);
         let addr: DeviceAddress10 = addr.into();
         assert_eq!(addr.into_inner(), 0b0000_0000_1111_0000);
     }
 
     #[test]
-    fn dev8_debug() {
-        let addr = DeviceAddress8::new(0b1111_0000);
-        test_format::assert_debug_fmt!(addr, "0xF0 (11110000)");
+    fn dev7_debug() {
+        let addr = DeviceAddress7::new(0b111_0000);
+        test_format::assert_debug_fmt!(addr, "0xF0 (01110000)");
     }
 
     #[test]
     #[cfg(feature = "std")]
-    fn dev8_display() {
-        let addr = DeviceAddress8::new(0b1111_0000);
-        test_format::assert_display_fmt!(addr, "0xF0 (11110000)");
+    fn dev7_display() {
+        let addr = DeviceAddress7::new(0b111_0000);
+        test_format::assert_display_fmt!(addr, "0xF0 (01110000)");
     }
 
     #[test]
