@@ -13,7 +13,7 @@ platform-agnostic drivers written using [embedded-hal].
 
 ## Requirements
 
-- Rust 1.56+
+- Rust 1.64+
 
 ## Code of Conduct
 
@@ -40,7 +40,7 @@ Triple licensed under your choice of either of:
 
 [safety-link]: https://github.com/rust-secure-code/safety-dance/
 
-[msrv-image]: https://img.shields.io/badge/rustc-1.56+-blue.svg
+[msrv-image]: https://img.shields.io/badge/rustc-1.64+-blue.svg
 
 [license-eupl-image]: https://img.shields.io/badge/license-EUPL_1.2-blue.svg
 

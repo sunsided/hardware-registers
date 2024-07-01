@@ -1,7 +1,7 @@
 //! Generic, embedded-friendly hardware registers support, including
 //! traits and types for understanding I2C registers.
 
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
 #![deny(warnings, clippy::pedantic)]
 #![warn(
@@ -17,19 +17,30 @@
 // Enables the `doc_cfg` feature when the `docsrs` configuration attribute is defined.
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-/// Test function
-#[must_use]
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+mod register_size;
+
+pub use register_size::RegisterSize;
+
+/// A generic hardware register of specified byte size.
+pub trait HardwareRegister<const BYTES: usize> {
+    /// The size of the register in bytes.
+    const SIZE: usize = BYTES;
 }
+
+/// A writable hardware register of specified byte size.
+pub trait WritableHardwareRegister<const BYTES: usize>: HardwareRegister<BYTES> {}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    struct TestRegister;
+
+    impl HardwareRegister<1> for TestRegister {}
+
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn constant_size_usable() {
+        // Ensure that the constant can be used to do calculations.
+        let _ = [0_u8; TestRegister::SIZE * 2];
     }
 }

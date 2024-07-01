@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust-version: [ 1.56.0, 1.79.0, stable, nightly ]
+        rust-version: [ 1.64.0, 1.79.0, stable, nightly ]
 
     steps:
       - name: Checkout code
