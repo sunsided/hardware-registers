@@ -40,7 +40,7 @@ impl DeviceAddress for DeviceAddress7 {
 
 impl From<u8> for DeviceAddress7 {
     fn from(value: u8) -> Self {
-        Self(value)
+        Self::new(value)
     }
 }
 
@@ -188,20 +188,20 @@ mod tests {
     fn dev10_from_dev7() {
         let addr = DeviceAddress7::from(0b1111_0000_u8);
         let addr: DeviceAddress10 = addr.into();
-        assert_eq!(addr.into_inner(), 0b0000_0000_1111_0000);
+        assert_eq!(addr.into_inner(), 0b0000_0000_0111_0000);
     }
 
     #[test]
     fn dev7_debug() {
         let addr = DeviceAddress7::new(0b111_0000);
-        test_format::assert_debug_fmt!(addr, "0xF0 (01110000)");
+        test_format::assert_debug_fmt!(addr, "0x70 (1110000)");
     }
 
     #[test]
     #[cfg(feature = "std")]
     fn dev7_display() {
         let addr = DeviceAddress7::new(0b111_0000);
-        test_format::assert_display_fmt!(addr, "0xF0 (01110000)");
+        test_format::assert_display_fmt!(addr, "0x70 (1110000)");
     }
 
     #[test]

@@ -179,7 +179,7 @@ mod tests {
     #[test]
     fn reg16_from_u16_masked() {
         let addr = RegisterAddress16::from(0b1111_1111_1111_0000_u16);
-        assert_eq!(addr.into_inner(), 0b0000_0011_1111_0000);
+        assert_eq!(addr.into_inner(), 0b1111_1111_1111_0000_u16);
     }
 
     #[test]
@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn reg8_debug() {
         let addr = RegisterAddress8::new(0b0011_0011);
-        test_format::assert_debug_fmt!(addr, "0xF0 (00110011)");
+        test_format::assert_debug_fmt!(addr, "0x33 (00110011)");
     }
 
     #[test]
@@ -205,13 +205,13 @@ mod tests {
     #[test]
     fn reg16_debug() {
         let addr = RegisterAddress16::new(0b1111_1111_0000_0000);
-        test_format::assert_debug_fmt!(addr, "0x1F4 (0b1111111100000000)");
+        test_format::assert_debug_fmt!(addr, "0xFF00 (1111111100000000)");
     }
 
     #[test]
     #[cfg(feature = "std")]
     fn reg16_display() {
         let addr = RegisterAddress16::new(0b1111_1111_0000_0000);
-        test_format::assert_debug_fmt!(addr, "0x1F4 (0b1111111100000000)");
+        test_format::assert_debug_fmt!(addr, "0xFF00 (1111111100000000)");
     }
 }
