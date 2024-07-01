@@ -20,7 +20,7 @@
 use crate::sizes::RegisterSizeInformation;
 
 #[cfg(feature = "i2c")]
-#[cfg_attr(docsrs, doc(cfg(feature = "isc")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "i2c")))]
 pub mod i2c;
 pub mod sizes;
 

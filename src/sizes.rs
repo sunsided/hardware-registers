@@ -56,17 +56,10 @@ macro_rules! impl_register_size {
         }
 
         #[cfg(feature = "std")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
         impl std::fmt::Display for $ident {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
-                use core::fmt::Write;
-                std::fmt::Display::fmt(&self.bytes(), f)?;
-                f.write_str(" byte")?;
-                if self.bytes() > 1 {
-                    f.write_char('s')?;
-                }
-                f.write_str(" (")?;
-                std::fmt::Display::fmt(&self.bits(), f)?;
-                f.write_str(" bits)")
+                write!(f, "{self:?}")
             }
         }
 

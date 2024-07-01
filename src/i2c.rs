@@ -76,7 +76,7 @@ impl RegisterAddress for u16 {
 }
 
 /// An 8-bit device address.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct DeviceAddress8(u8);
 
 impl DeviceAddress8 {
@@ -104,7 +104,7 @@ impl From<u8> for DeviceAddress8 {
 }
 
 /// A 10-bit device address.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct DeviceAddress10(u16);
 
 impl DeviceAddress10 {
@@ -156,6 +156,40 @@ impl TryFrom<DeviceAddress10> for DeviceAddress8 {
     }
 }
 
+impl core::fmt::Debug for DeviceAddress8 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "0x{:02X}", self.0)?;
+        f.write_str(" (")?;
+        write!(f, "{:08b}", self.0)?;
+        f.write_str(")")
+    }
+}
+
+impl core::fmt::Debug for DeviceAddress10 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "0x{:03X}", self.0)?;
+        f.write_str(" (")?;
+        write!(f, "{:010b}", self.0)?;
+        f.write_str(")")
+    }
+}
+
+#[cfg(feature = "std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+impl std::fmt::Display for DeviceAddress8 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+#[cfg(feature = "std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+impl std::fmt::Display for DeviceAddress10 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -191,5 +225,31 @@ mod tests {
         let addr = DeviceAddress8::from(0b1111_0000_u8);
         let addr: DeviceAddress10 = addr.into();
         assert_eq!(addr.into_inner(), 0b0000_0000_1111_0000);
+    }
+
+    #[test]
+    fn dev8_debug() {
+        let addr = DeviceAddress8::new(0b1111_0000);
+        test_format::assert_debug_fmt!(addr, "0xF0 (11110000)");
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn dev8_display() {
+        let addr = DeviceAddress8::new(0b1111_0000);
+        test_format::assert_display_fmt!(addr, "0xF0 (11110000)");
+    }
+
+    #[test]
+    fn dev10_debug() {
+        let addr = DeviceAddress10::new(0b01_1111_0100);
+        test_format::assert_debug_fmt!(addr, "0x1F4 (0111110100)");
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn dev10_display() {
+        let addr = DeviceAddress10::new(0b01_1111_0100);
+        test_format::assert_display_fmt!(addr, "0x1F4 (0111110100)");
     }
 }
