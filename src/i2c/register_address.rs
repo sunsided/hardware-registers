@@ -199,7 +199,7 @@ mod tests {
     #[cfg(feature = "std")]
     fn reg8_display() {
         let addr = RegisterAddress8::new(0b1111_0000);
-        test_format::assert_display_fmt!(addr, "0xF0 (11116000)");
+        test_format::assert_display_fmt!(addr, "0xF0 (11110000)");
     }
 
     #[test]
