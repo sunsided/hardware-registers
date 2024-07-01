@@ -48,7 +48,12 @@ where
 
 /// Marker trait for readable 8-bit I²C registers.
 pub trait I2CRegister8<D>:
-    I2CRegister<D, RegisterAddress8, R1, Backing = u8> + HardwareRegister<R1> + Copy + Clone + ToBits<Target = u8> + FromBits<u8>
+    I2CRegister<D, RegisterAddress8, R1, Backing = u8>
+    + HardwareRegister<R1>
+    + Copy
+    + Clone
+    + ToBits<Target = u8>
+    + FromBits<u8>
 where
     D: DeviceAddress,
 {
@@ -81,7 +86,12 @@ where
 /// Auto-implement [`I2CRegister8`] for any fitting register.
 impl<I, D> I2CRegister8<D> for I
 where
-    I: I2CRegister<D, RegisterAddress8, R1, Backing = u8> + WritableHardwareRegister<R1> + Copy + Clone + ToBits<Target = u8> + FromBits<u8>,
+    I: I2CRegister<D, RegisterAddress8, R1, Backing = u8>
+        + HardwareRegister<R1>
+        + Copy
+        + Clone
+        + ToBits<Target = u8>
+        + FromBits<u8>,
     D: DeviceAddress,
 {
 }
@@ -97,7 +107,7 @@ where
 /// Auto-implement [`I2CRegister16`] for any fitting register.
 impl<I, D> I2CRegister16<D> for I
 where
-    I: I2CRegister<D, RegisterAddress16, R2> + WritableHardwareRegister<R2> + Copy + Clone,
+    I: I2CRegister<D, RegisterAddress16, R2> + HardwareRegister<R2> + Copy + Clone,
     D: DeviceAddress,
 {
 }
