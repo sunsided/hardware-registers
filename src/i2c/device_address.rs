@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 /// A device address.
 pub trait DeviceAddress {
     /// The number of bits of the address.
@@ -93,6 +95,22 @@ impl TryFrom<DeviceAddress10> for DeviceAddress7 {
         let value = value.into_inner();
         let addr_8: u8 = value.try_into()?;
         Ok(Self(addr_8))
+    }
+}
+
+impl Deref for DeviceAddress7 {
+    type Target = u8;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Deref for DeviceAddress10 {
+    type Target = u16;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 /// A register address.
 pub trait RegisterAddress {
     /// The number of bits of the address.
@@ -97,6 +99,22 @@ impl TryFrom<RegisterAddress16> for RegisterAddress8 {
         let value = value.into_inner();
         let addr_8: u8 = value.try_into()?;
         Ok(Self(addr_8))
+    }
+}
+
+impl Deref for RegisterAddress8 {
+    type Target = u8;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Deref for RegisterAddress16 {
+    type Target = u16;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
