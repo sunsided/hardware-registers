@@ -1,5 +1,7 @@
 # Hardware Register Traits
 
+[![Crates.io][crates-image]][crates-link]
+[![Docs][docs-image]][docs-link]
 [![Build Status][build-image]][build-link]
 [![Safety Dance][safety-image]][safety-link]
 [![codecov][codecov-image]][codecov-link]
@@ -31,7 +33,13 @@ Triple licensed under your choice of either of:
 - Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
 - MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
-[//]: # (badges)
+[crates-image]: https://img.shields.io/crates/v/hardware-registers
+
+[crates-link]: https://crates.io/crates/hardware-registers
+
+[docs-image]: https://docs.rs/hardware-registers/badge.svg
+
+[docs-link]: https://docs.rs/hardware-registers/
 
 [build-image]: https://github.com/sunsided/hardware-registers/workflows/Rust/badge.svg
 
