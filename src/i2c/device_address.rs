@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use core::ops::Deref;
 
 /// A device address.
 pub trait DeviceAddress {
