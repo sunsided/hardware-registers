@@ -65,10 +65,8 @@ Triple licensed under your choice of either of:
 
 [embedded-hal]: https://docs.rs/embedded-hal/
 
-
 [codecov-image]: https://codecov.io/gh/sunsided/hardware-registers/graph/badge.svg?token=lYrBfZQ1nh
 
 [codecov-link]: https://codecov.io/gh/sunsided/hardware-registers
-
 
 [cc]: https://contributor-covenant.org
