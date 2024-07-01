@@ -2,8 +2,22 @@ use core::fmt::{Debug, Formatter, Write};
 use core::num::NonZeroUsize;
 
 /// A register size.
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct RegisterSize(NonZeroUsize);
+
+/// Accesses register size information.
+#[allow(clippy::module_name_repetitions)]
+pub trait RegisterSizeInformation {
+    /// Gets the register size in bytes.
+    fn bytes(&self) -> usize;
+
+    /// Gets the register size in bits.
+    #[inline]
+    #[must_use]
+    fn bits(&self) -> usize {
+        self.bytes() * 8
+    }
+}
 
 impl RegisterSize {
     /// A register with a size of 8 bits (1 byte).
@@ -113,6 +127,32 @@ impl Debug for RegisterSize {
     }
 }
 
+impl From<RegisterSize> for usize {
+    fn from(value: RegisterSize) -> Self {
+        value.into_usize()
+    }
+}
+
+impl From<RegisterSize> for NonZeroUsize {
+    fn from(value: RegisterSize) -> Self {
+        value.into_inner()
+    }
+}
+
+impl RegisterSizeInformation for RegisterSize {
+    #[inline]
+    #[must_use]
+    fn bytes(&self) -> usize {
+        self.bytes()
+    }
+
+    #[inline]
+    #[must_use]
+    fn bits(&self) -> usize {
+        self.bits()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -135,5 +175,31 @@ mod tests {
     pub fn display() {
         let reg = RegisterSize::R4;
         test_format::assert_display_fmt!(reg, "4 bytes (32 bits)");
+    }
+
+    #[test]
+    pub fn into_usize() {
+        let reg = RegisterSize::R4;
+        let value: usize = reg.into();
+        assert_eq!(value, 4);
+    }
+
+    #[test]
+    #[allow(clippy::unwrap_used)]
+    pub fn into_nonzero_usize() {
+        let reg = RegisterSize::R4;
+        let value: NonZeroUsize = reg.into();
+        assert_eq!(value, NonZeroUsize::new(4).unwrap());
+    }
+
+    #[test]
+    fn size_information_trait() {
+        fn wrap(size: RegisterSize) -> impl RegisterSizeInformation {
+            size
+        }
+
+        let r3 = wrap(RegisterSize::R4);
+        assert_eq!(r3.bytes(), 4);
+        assert_eq!(r3.bits(), 32);
     }
 }

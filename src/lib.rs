@@ -19,16 +19,21 @@
 
 mod register_size;
 
-pub use register_size::RegisterSize;
+pub use register_size::{RegisterSize, RegisterSizeInformation};
 
 /// A generic hardware register of specified byte size.
-pub trait HardwareRegister<const BYTES: usize> {
-    /// The size of the register in bytes.
-    const SIZE: usize = BYTES;
+pub trait HardwareRegister<Size>
+where
+    Size: RegisterSizeInformation,
+{
 }
 
 /// A writable hardware register of specified byte size.
-pub trait WritableHardwareRegister<const BYTES: usize>: HardwareRegister<BYTES> {}
+pub trait WritableHardwareRegister<Size>: HardwareRegister<Size>
+where
+    Size: RegisterSizeInformation,
+{
+}
 
 #[cfg(test)]
 mod tests {
@@ -36,7 +41,7 @@ mod tests {
 
     struct TestRegister;
 
-    impl HardwareRegister<1> for TestRegister {}
+    impl HardwareRegister<RegisterSize::R1> for TestRegister {}
 
     #[test]
     fn constant_size_usable() {
