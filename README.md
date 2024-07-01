@@ -54,8 +54,6 @@ Triple licensed under your choice of either of:
 
 [license-eupl-link]: https://github.com/sunsided/hardware-registers/blob/develop/LICENSE-EUPL
 
-[//]: # (general links)
-
 [embedded-hal]: https://docs.rs/embedded-hal/
 
 [cc]: https://contributor-covenant.org
