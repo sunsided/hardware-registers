@@ -19,6 +19,9 @@
 
 use crate::sizes::RegisterSizeInformation;
 
+#[cfg(feature = "i2c")]
+#[cfg_attr(docsrs, doc(cfg(feature = "isc")))]
+pub mod i2c;
 pub mod sizes;
 
 /// A generic hardware register of specified byte size.

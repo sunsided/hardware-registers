@@ -15,7 +15,9 @@ categories = ["embedded", "hardware-support", "no-std"]
 keywords = ["registers", "hardware-registers", "i2c"]
 
 [features]
+default = ["i2c"]
 std = []
+i2c = []
 
 [dev-dependencies]
 test-format = { version = "0.1.0", features = ["std"] }
