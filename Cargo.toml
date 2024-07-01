@@ -1,0 +1,21 @@
+[package]
+name = "hardware-registers"
+version = "0.1.0"
+description = """
+Generic, embedded-friendly hardware registers support, including
+traits and types for understanding I2C registers.
+"""
+authors = ["Markus Mayer <widemeadows@gmail.com>"]
+license = "EUPL-1.2 OR Apache-2.0 OR MIT"
+repository = "https://github.com/sunsided/hardware-registers.rs"
+readme = "README.md"
+edition = "2021"
+rust-version = "1.56"
+categories = ["embedded", "hardware-support", "no-std"]
+keywords = ["registers", "hardware-registers", "i2c"]
+
+[dependencies]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
