@@ -48,7 +48,7 @@ where
 }
 
 /// Marker trait for readable 8-bit I²C registers.
-pub trait I2CRegister8<D>: I2CRegister<D, RegisterAddress8, R1> + HardwareRegister<R1>
+pub trait I2CRegister8<D>: I2CRegister<D, RegisterAddress8, R1> + HardwareRegister<R1> + Copy + Clone
 where
     D: DeviceAddress,
 {
@@ -56,14 +56,14 @@ where
 
 /// Marker trait for writable 8-bit I²C registers.
 pub trait WritableI2CRegister8<D>:
-    WritableI2CRegister<D, RegisterAddress8, R1> + WritableHardwareRegister<R1>
+    WritableI2CRegister<D, RegisterAddress8, R1> + WritableHardwareRegister<R1> + Copy + Clone
 where
     D: DeviceAddress,
 {
 }
 
 /// Marker trait for readable 16-bit I²C registers.
-pub trait I2CRegister16<D>: I2CRegister<D, RegisterAddress16, R2> + HardwareRegister<R2>
+pub trait I2CRegister16<D>: I2CRegister<D, RegisterAddress16, R2> + HardwareRegister<R2> + Copy + Clone
 where
     D: DeviceAddress,
 {
@@ -71,7 +71,7 @@ where
 
 /// Marker trait for writable 16-bit I²C registers.
 pub trait WritableI2CRegister16<D>:
-    WritableI2CRegister<D, RegisterAddress16, R2> + WritableHardwareRegister<R2>
+    WritableI2CRegister<D, RegisterAddress16, R2> + WritableHardwareRegister<R2> + Copy + Clone
 where
     D: DeviceAddress,
 {
@@ -80,7 +80,7 @@ where
 /// Auto-implement [`I2CRegister8`] for any fitting register.
 impl<I, D> I2CRegister8<D> for I
 where
-    I: I2CRegister<D, RegisterAddress8, R1> + WritableHardwareRegister<R1>,
+    I: I2CRegister<D, RegisterAddress8, R1> + WritableHardwareRegister<R1> + Copy + Clone,
     D: DeviceAddress,
 {
 }
@@ -88,7 +88,7 @@ where
 /// Auto-implement [`WritableI2CRegister8`] for any fitting register.
 impl<I, D> WritableI2CRegister8<D> for I
 where
-    I: WritableI2CRegister<D, RegisterAddress8, R1> + WritableHardwareRegister<R1>,
+    I: WritableI2CRegister<D, RegisterAddress8, R1> + WritableHardwareRegister<R1> + Copy + Clone,
     D: DeviceAddress,
 {
 }
@@ -96,7 +96,7 @@ where
 /// Auto-implement [`I2CRegister16`] for any fitting register.
 impl<I, D> I2CRegister16<D> for I
 where
-    I: I2CRegister<D, RegisterAddress16, R2> + WritableHardwareRegister<R2>,
+    I: I2CRegister<D, RegisterAddress16, R2> + WritableHardwareRegister<R2> + Copy + Clone,
     D: DeviceAddress,
 {
 }
@@ -104,7 +104,7 @@ where
 /// Auto-implement [`WritableI2CRegister16`] for any fitting register.
 impl<I, D> WritableI2CRegister16<D> for I
 where
-    I: WritableI2CRegister<D, RegisterAddress16, R2> + WritableHardwareRegister<R2>,
+    I: WritableI2CRegister<D, RegisterAddress16, R2> + WritableHardwareRegister<R2> + Copy + Clone,
     D: DeviceAddress,
 {
 }
