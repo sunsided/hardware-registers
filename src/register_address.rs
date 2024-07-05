@@ -1,3 +1,5 @@
+//! Traits and types for register addresses.
+
 use core::ops::Deref;
 
 /// A register address.
@@ -20,6 +22,35 @@ impl RegisterAddress for u8 {
 /// Implements 16-bit register addresses.
 impl RegisterAddress for u16 {
     const ADDR_BITS: usize = 16;
+}
+
+/// An 6-bit register address.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[allow(clippy::module_name_repetitions)]
+pub struct RegisterAddress6(u8);
+
+impl RegisterAddress6 {
+    /// Constructs a new [`RegisterAddress6`] from a specified value.
+    #[must_use]
+    pub const fn new(address: u8) -> Self {
+        Self(address & 0b0011_1111)
+    }
+
+    /// Consumes self and returns the inner value.
+    #[must_use]
+    pub const fn into_inner(self) -> u8 {
+        self.0
+    }
+}
+
+impl RegisterAddress for RegisterAddress6 {
+    const ADDR_BITS: usize = 6;
+}
+
+impl From<u8> for RegisterAddress6 {
+    fn from(value: u8) -> Self {
+        Self::new(value)
+    }
 }
 
 /// An 8-bit register address.
@@ -102,6 +133,14 @@ impl TryFrom<RegisterAddress16> for RegisterAddress8 {
     }
 }
 
+impl Deref for RegisterAddress6 {
+    type Target = u8;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl Deref for RegisterAddress8 {
     type Target = u8;
 
@@ -115,6 +154,15 @@ impl Deref for RegisterAddress16 {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl core::fmt::Debug for RegisterAddress6 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "0x{:02X}", self.0)?;
+        f.write_str(" (")?;
+        write!(f, "{:06b}", self.0)?;
+        f.write_str(")")
     }
 }
 
@@ -136,18 +184,20 @@ impl core::fmt::Debug for RegisterAddress16 {
     }
 }
 
-#[cfg(feature = "std")]
-#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
-impl std::fmt::Display for RegisterAddress8 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for RegisterAddress6 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{self:?}")
     }
 }
 
-#[cfg(feature = "std")]
-#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
-impl std::fmt::Display for RegisterAddress16 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for RegisterAddress8 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
+impl core::fmt::Display for RegisterAddress16 {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{self:?}")
     }
 }

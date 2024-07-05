@@ -1,10 +1,9 @@
 //! Support for I²C registers.
 
 mod device_address;
-mod register_address;
 
 pub use crate::i2c::device_address::{DeviceAddress, DeviceAddress10, DeviceAddress7};
-pub use crate::i2c::register_address::{RegisterAddress, RegisterAddress16, RegisterAddress8};
+pub use crate::register_address::{RegisterAddress, RegisterAddress16, RegisterAddress8};
 use crate::sizes::{RegisterSizeInformation, R1, R2};
 use crate::{FromBits, HardwareRegister, ToBits, WritableHardwareRegister};
 
