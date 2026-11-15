@@ -5,6 +5,10 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-15
+
+[0.4.1]: https://github.com/sunsided/hardware-registers/releases/tag/v0.4.1
+
 ### Fixed
 
 - `ReadableI2CRegister8` / `16` and `ReadableSPIRegister8` / `16` now require
