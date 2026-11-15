@@ -48,12 +48,15 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - name: Install actionlint and zizmor
+      - name: Install zizmor
         uses: taiki-e/install-action@ab49d3c64680143e184118bed66a46419fc15519 # v2.90.5
         with:
-          tool: actionlint,zizmor
+          tool: zizmor
+      # install-action has no actionlint; go install is version-pinned and checksum-verified.
       - name: actionlint
-        run: actionlint
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          "$(go env GOPATH)/bin/actionlint"
       - name: zizmor
         run: zizmor --format=github .
         env:
