@@ -13,8 +13,10 @@ jobs:
     name: Publish to crates.io
     runs-on: ubuntu-latest
     environment: release
+    outputs:
+      notes: ${{ steps.notes.outputs.notes }}
     permissions:
-      contents: write # create the GitHub Release
+      contents: read
       id-token: write # OIDC token exchange for crates.io trusted publishing
     steps:
       - name: Checkout
@@ -31,6 +33,7 @@ jobs:
             exit 1
           fi
       - name: Extract release notes from CHANGELOG.md
+        id: notes
         run: |
           version="${GITHUB_REF_NAME#v}"
           # Section between "## [<version>]" and the next "## [" heading, minus its link line.
@@ -43,6 +46,11 @@ jobs:
             echo "::error::No CHANGELOG.md section for ${version}"
             exit 1
           fi
+          {
+            echo "notes<<RELEASE_NOTES_EOF"
+            cat "${RUNNER_TEMP}/release-notes.md"
+            echo "RELEASE_NOTES_EOF"
+          } >> "${GITHUB_OUTPUT}"
       - name: Authenticate with crates.io
         id: auth
         uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
@@ -50,7 +58,29 @@ jobs:
         run: cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
+  github-release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release; no third-party actions run in this job
+    steps:
       - name: Create GitHub Release
-        run: gh release create "${GITHUB_REF_NAME}" --verify-tag --title "${GITHUB_REF_NAME#v}" --notes-file "${RUNNER_TEMP}/release-notes.md"
+        run: |
+          # Idempotent, so a re-run after a failed release step does not need a new publish.
+          if gh release view "${GITHUB_REF_NAME}" > /dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists"
+            exit 0
+          fi
+          prerelease=()
+          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+            prerelease=(--prerelease)
+          fi
+          printf '%s\n' "${NOTES}" > "${RUNNER_TEMP}/release-notes.md"
+          gh release create "${GITHUB_REF_NAME}" --verify-tag "${prerelease[@]}" \
+            --title "${GITHUB_REF_NAME#v}" --notes-file "${RUNNER_TEMP}/release-notes.md"
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NOTES: ${{ needs.publish.outputs.notes }}
