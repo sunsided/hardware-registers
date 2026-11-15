@@ -5,6 +5,10 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-15
+
+[0.3.0]: https://github.com/sunsided/hardware-registers/releases/tag/v0.3.0
+
 ### Fixed
 
 - `DeviceAddress7::try_from(DeviceAddress10)` now rejects addresses above `0x7F`
