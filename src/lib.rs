@@ -21,6 +21,64 @@
 
 use crate::sizes::RegisterSizeInformation;
 
+/// Implements an address newtype whose value is masked to `$bits` bits.
+///
+/// Must be defined before the modules using it (textual macro scoping).
+macro_rules! impl_address {
+    ($(#[$meta:meta])* $name:ident($inner:ty), $trait:ident, $bits:literal, $mask:expr) => {
+        $(#[$meta])*
+        #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+        #[allow(clippy::module_name_repetitions)]
+        pub struct $name($inner);
+
+        impl $name {
+            #[doc = concat!("Constructs a new [`", stringify!($name), "`] from a specified value.")]
+            ///
+            #[doc = concat!("The value is masked to its lower ", stringify!($bits), " bits.")]
+            #[must_use]
+            pub const fn new(address: $inner) -> Self {
+                Self(address & $mask)
+            }
+
+            /// Consumes self and returns the inner value.
+            #[must_use]
+            pub const fn into_inner(self) -> $inner {
+                self.0
+            }
+        }
+
+        impl $trait for $name {
+            const ADDR_BITS: usize = $bits;
+        }
+
+        impl From<$inner> for $name {
+            fn from(value: $inner) -> Self {
+                Self::new(value)
+            }
+        }
+
+        impl core::ops::Deref for $name {
+            type Target = $inner;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
+
+        impl core::fmt::Debug for $name {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "0x{v:0hex$X} ({v:0bin$b})", v = self.0, hex = ($bits + 3) / 4, bin = $bits)
+            }
+        }
+
+        impl core::fmt::Display for $name {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{self:?}")
+            }
+        }
+    };
+}
+
 #[cfg(feature = "i2c")]
 #[cfg_attr(docsrs, doc(cfg(feature = "i2c")))]
 pub mod i2c;
@@ -61,13 +119,13 @@ pub trait ToBits {
 
 /// Conversion from bits/bytes.
 pub trait FromBits<B>: Sized {
-    /// Converts the value into an underlying bit/byte representation
+    /// Constructs the value from an underlying bit/byte representation
     #[inline]
     fn from_bits(value: B) -> Self {
         Self::from_bits_ref(&value)
     }
 
-    /// Converts the value into an underlying bit/byte representation
+    /// Constructs the value from a reference to an underlying bit/byte representation
     fn from_bits_ref(value: &B) -> Self;
 }
 
