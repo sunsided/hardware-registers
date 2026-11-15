@@ -109,7 +109,7 @@ where
 mod tests {
     use super::*;
 
-    #[derive(Copy, Clone, Debug, PartialEq)]
+    #[derive(Copy, Clone)]
     struct Reg8(u8);
 
     impl HardwareRegister<R1> for Reg8 {}

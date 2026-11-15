@@ -39,12 +39,12 @@ impl From<DeviceAddress7> for DeviceAddress10 {
 }
 
 impl TryFrom<DeviceAddress10> for DeviceAddress7 {
-    type Error = <u16 as TryInto<u8>>::Error;
+    type Error = core::num::TryFromIntError;
 
     fn try_from(value: DeviceAddress10) -> Result<Self, Self::Error> {
-        // i8 accepts exactly 0..=127, the valid 7-bit range, and yields the same error type.
+        // i8 accepts exactly 0..=127, the valid 7-bit range.
         let addr: i8 = value.into_inner().try_into()?;
-        Ok(Self(addr.unsigned_abs()))
+        Ok(Self::new(addr.unsigned_abs()))
     }
 }
 
