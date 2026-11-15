@@ -197,6 +197,28 @@ mod tests {
         let _ = [0_u8; TestRegister::SIZE_BYTES * 2];
     }
 
+    #[derive(Debug, PartialEq)]
+    struct Bits(u8);
+
+    impl FromBits<u8> for Bits {
+        fn from_bits_ref(value: &u8) -> Self {
+            Self(*value)
+        }
+    }
+
+    #[test]
+    fn from_bits_delegates_to_ref() {
+        assert_eq!(Bits::from_bits(0x5A), Bits(0x5A));
+    }
+
+    #[test]
+    fn try_from_bits_is_infallible_for_from_bits() {
+        assert_eq!(
+            <Bits as TryFromBits<u8>>::try_from_bits(0x5A),
+            Ok(Bits(0x5A))
+        );
+    }
+
     #[test]
     fn byte_order_defaults_to_big_endian() {
         assert_eq!(TestRegister::BYTE_ORDER, ByteOrder::BigEndian);
