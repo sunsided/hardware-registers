@@ -1,0 +1,103 @@
+# https://taskfile.dev
+version: '3'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list --sort=none
+    silent: true
+
+  fmt:
+    desc: Format all Rust sources
+    aliases: [format]
+    cmds:
+      - cargo fmt --all
+
+  fmt:check:
+    desc: Check formatting without modifying files
+    cmds:
+      - cargo fmt --all -- --check
+
+  lint:
+    desc: Run clippy for all and for no default features
+    cmds:
+      - cargo clippy --all-targets --all-features
+      - cargo clippy --all-targets --no-default-features
+
+  lint:fix:
+    desc: Auto-fix clippy lints, then format
+    aliases: [fix]
+    cmds:
+      - cargo clippy --all-targets --all-features --fix --allow-dirty --allow-staged
+      - task: fmt
+
+  lint:actions:
+    desc: Lint GitHub Actions workflows with actionlint and zizmor
+    preconditions:
+      - sh: command -v actionlint
+        msg: "actionlint not found — see https://github.com/rhysd/actionlint/blob/main/docs/install.md"
+      - sh: command -v zizmor
+        msg: "zizmor not found — install with: uv tool install zizmor (or cargo install zizmor)"
+    cmds:
+      - actionlint
+      - zizmor .
+
+  lint:spell:
+    desc: Check spelling with codespell
+    preconditions:
+      - sh: command -v codespell
+        msg: "codespell not found — install with: uv tool install codespell (or pipx install codespell)"
+    cmds:
+      - codespell
+
+  check:
+    desc: Run all static checks (fmt, clippy, spelling, GitHub Actions)
+    cmds:
+      - task: fmt:check
+      - task: lint:spell
+      - task: lint
+      - task: lint:actions
+
+  build:
+    desc: Build the crate with all features
+    cmds:
+      - cargo build --all-targets --all-features
+
+  test:
+    desc: Run tests for all and for no default features
+    cmds:
+      - cargo test --all-features {{.CLI_ARGS}}
+      - cargo test --no-default-features {{.CLI_ARGS}}
+
+  docs:
+    desc: Build rustdoc
+    cmds:
+      - cargo doc --all-features --no-deps
+
+  docs:open:
+    desc: Build and open rustdoc in the browser
+    cmds:
+      - cargo doc --all-features --no-deps --open
+
+  clean:
+    desc: Remove build artifacts
+    status:
+      - test ! -d target
+    cmds:
+      - cargo clean
+
+  ci:
+    desc: Run checks expected in CI (static checks, tests, docs)
+    cmds:
+      - task: check
+      - task: test
+      - task: docs
+
+  release:
+    desc: "Dry-run a release with cargo-release (e.g. task release -- minor); --execute bumps, tags and pushes, CI publishes"
+    preconditions:
+      - sh: command -v cargo-release
+        msg: "cargo-release not found — cargo install cargo-release"
+    cmds:
+      - cargo release {{.CLI_ARGS}}
