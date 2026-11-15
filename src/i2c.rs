@@ -80,8 +80,12 @@ where
 }
 
 /// Marker trait for readable 8-bit I²C registers.
-pub trait ReadableI2CRegister8<D>:
-    I2CRegister8<D> + ReadableI2CRegister<D, RegisterAddress8, R1>
+///
+/// Requires `TryFromBits<u8>` directly rather than via the generic readable trait:
+/// the solver does not normalize `TryFromBits<Self::Backing>`, so generic code could
+/// not name `<R as TryFromBits<u8>>::Error`. Every such register still implements it.
+///
+pub trait ReadableI2CRegister8<D>: I2CRegister8<D> + TryFromBits<u8>
 where
     D: DeviceAddress,
 {
@@ -103,8 +107,11 @@ where
 }
 
 /// Marker trait for readable 16-bit I²C registers.
-pub trait ReadableI2CRegister16<D>:
-    I2CRegister16<D> + ReadableI2CRegister<D, RegisterAddress16, R2>
+///
+/// Requires `TryFromBits<u16>` directly rather than via the generic readable trait:
+/// the solver does not normalize `TryFromBits<Self::Backing>`, so generic code could
+/// not name `<R as TryFromBits<u16>>::Error`. Every such register still implements it.
+pub trait ReadableI2CRegister16<D>: I2CRegister16<D> + TryFromBits<u16>
 where
     D: DeviceAddress,
 {
@@ -129,7 +136,7 @@ where
 /// Auto-implement [`ReadableI2CRegister8`] for any fitting register.
 impl<I, D> ReadableI2CRegister8<D> for I
 where
-    I: I2CRegister8<D> + ReadableI2CRegister<D, RegisterAddress8, R1>,
+    I: I2CRegister8<D> + TryFromBits<u8>,
     D: DeviceAddress,
 {
 }
@@ -153,7 +160,7 @@ where
 /// Auto-implement [`ReadableI2CRegister16`] for any fitting register.
 impl<I, D> ReadableI2CRegister16<D> for I
 where
-    I: I2CRegister16<D> + ReadableI2CRegister<D, RegisterAddress16, R2>,
+    I: I2CRegister16<D> + TryFromBits<u16>,
     D: DeviceAddress,
 {
 }

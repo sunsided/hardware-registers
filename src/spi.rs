@@ -65,7 +65,12 @@ where
 pub trait SPIRegister8: SPIRegister<RegisterAddress8, R1, Backing = u8> + Copy {}
 
 /// Marker trait for readable 8-bit SPI registers.
-pub trait ReadableSPIRegister8: SPIRegister8 + ReadableSPIRegister<RegisterAddress8, R1> {}
+///
+/// Requires `TryFromBits<u8>` directly rather than via the generic readable trait:
+/// the solver does not normalize `TryFromBits<Self::Backing>`, so generic code could
+/// not name `<R as TryFromBits<u8>>::Error`. Every such register still implements it.
+///
+pub trait ReadableSPIRegister8: SPIRegister8 + TryFromBits<u8> {}
 
 /// Marker trait for writable 8-bit SPI registers.
 pub trait WritableSPIRegister8: SPIRegister8 + WritableSPIRegister<RegisterAddress8, R1> {}
@@ -74,10 +79,11 @@ pub trait WritableSPIRegister8: SPIRegister8 + WritableSPIRegister<RegisterAddre
 pub trait SPIRegister16: SPIRegister<RegisterAddress16, R2, Backing = u16> + Copy {}
 
 /// Marker trait for readable 16-bit SPI registers.
-pub trait ReadableSPIRegister16:
-    SPIRegister16 + ReadableSPIRegister<RegisterAddress16, R2>
-{
-}
+///
+/// Requires `TryFromBits<u16>` directly rather than via the generic readable trait:
+/// the solver does not normalize `TryFromBits<Self::Backing>`, so generic code could
+/// not name `<R as TryFromBits<u16>>::Error`. Every such register still implements it.
+pub trait ReadableSPIRegister16: SPIRegister16 + TryFromBits<u16> {}
 
 /// Marker trait for writable 16-bit SPI registers.
 pub trait WritableSPIRegister16:
@@ -89,7 +95,7 @@ pub trait WritableSPIRegister16:
 impl<I> SPIRegister8 for I where I: SPIRegister<RegisterAddress8, R1, Backing = u8> + Copy {}
 
 /// Auto-implement [`ReadableSPIRegister8`] for any fitting register.
-impl<I> ReadableSPIRegister8 for I where I: SPIRegister8 + ReadableSPIRegister<RegisterAddress8, R1> {}
+impl<I> ReadableSPIRegister8 for I where I: SPIRegister8 + TryFromBits<u8> {}
 
 /// Auto-implement [`WritableSPIRegister8`] for any fitting register.
 impl<I> WritableSPIRegister8 for I where I: SPIRegister8 + WritableSPIRegister<RegisterAddress8, R1> {}
@@ -98,10 +104,7 @@ impl<I> WritableSPIRegister8 for I where I: SPIRegister8 + WritableSPIRegister<R
 impl<I> SPIRegister16 for I where I: SPIRegister<RegisterAddress16, R2, Backing = u16> + Copy {}
 
 /// Auto-implement [`ReadableSPIRegister16`] for any fitting register.
-impl<I> ReadableSPIRegister16 for I where
-    I: SPIRegister16 + ReadableSPIRegister<RegisterAddress16, R2>
-{
-}
+impl<I> ReadableSPIRegister16 for I where I: SPIRegister16 + TryFromBits<u16> {}
 
 /// Auto-implement [`WritableSPIRegister16`] for any fitting register.
 impl<I> WritableSPIRegister16 for I where

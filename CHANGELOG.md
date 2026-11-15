@@ -5,6 +5,14 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `ReadableI2CRegister8` / `16` and `ReadableSPIRegister8` / `16` now require
+  `TryFromBits<u8>` / `TryFromBits<u16>` directly. Generic code bounded only by these
+  markers can now name `<R as TryFromBits<u8>>::Error` in where-clauses, which failed
+  with E0277 (`R: FromBits<u8>` not satisfied). The markers still imply the generic
+  `ReadableI2CRegister` / `ReadableSPIRegister` traits through their blanket impls.
+
 ## [0.4.0] - 2026-11-15
 
 [0.4.0]: https://github.com/sunsided/hardware-registers/releases/tag/v0.4.0
