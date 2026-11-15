@@ -147,6 +147,9 @@ pub trait FromBits<B>: Sized {
 /// Fallible conversion from bits/bytes, e.g. for registers with reserved or invalid bit patterns.
 ///
 /// Implemented for every [`FromBits`] type with an [`Infallible`](core::convert::Infallible) error.
+/// Because of that blanket implementation, a type implements either [`FromBits`] or its own
+/// [`TryFromBits`] for a given `B`, never both: to make an infallible register fallible,
+/// replace its [`FromBits`] implementation.
 pub trait TryFromBits<B>: Sized {
     /// The error returned if the bits do not form a valid value.
     type Error;
@@ -155,7 +158,16 @@ pub trait TryFromBits<B>: Sized {
     ///
     /// # Errors
     /// Returns [`Self::Error`] if `value` is not a valid bit pattern for this type.
-    fn try_from_bits(value: B) -> Result<Self, Self::Error>;
+    #[inline]
+    fn try_from_bits(value: B) -> Result<Self, Self::Error> {
+        Self::try_from_bits_ref(&value)
+    }
+
+    /// Attempts to construct the value from a reference to an underlying bit/byte representation.
+    ///
+    /// # Errors
+    /// Returns [`Self::Error`] if `value` is not a valid bit pattern for this type.
+    fn try_from_bits_ref(value: &B) -> Result<Self, Self::Error>;
 }
 
 impl<T, B> TryFromBits<B> for T
@@ -165,8 +177,8 @@ where
     type Error = core::convert::Infallible;
 
     #[inline]
-    fn try_from_bits(value: B) -> Result<Self, Self::Error> {
-        Ok(Self::from_bits(value))
+    fn try_from_bits_ref(value: &B) -> Result<Self, Self::Error> {
+        Ok(Self::from_bits_ref(value))
     }
 }
 

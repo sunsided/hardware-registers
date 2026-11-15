@@ -7,7 +7,7 @@ use hardware_registers::sizes::R1;
 use hardware_registers::spi::{ReadableSPIRegister8, RegisterAddress8, SPIRegister};
 use hardware_registers::{HardwareRegister, TryFromBits};
 
-/// Register whose upper six bits are reserved and must read as zero.
+/// Register whose upper six bits are reserved and must be rejected when set.
 #[derive(Copy, Clone, Debug, PartialEq)]
 enum Mode {
     Off,
@@ -20,8 +20,8 @@ impl HardwareRegister<R1> for Mode {}
 impl TryFromBits<u8> for Mode {
     type Error = u8;
 
-    fn try_from_bits(value: u8) -> Result<Self, Self::Error> {
-        match value {
+    fn try_from_bits_ref(value: &u8) -> Result<Self, Self::Error> {
+        match *value {
             0 => Ok(Self::Off),
             1 => Ok(Self::On),
             2 => Ok(Self::Auto),
@@ -43,4 +43,5 @@ fn read<T: ReadableSPIRegister8>(raw: u8) -> Result<T, T::Error> {
 fn fallible_read_through_marker_trait() {
     assert_eq!(read::<Mode>(2), Ok(Mode::Auto));
     assert_eq!(read::<Mode>(3), Err(3));
+    assert_eq!(read::<Mode>(0x80), Err(0x80));
 }
