@@ -86,6 +86,30 @@ impl_register_size!(R16, 16, "A register with a size of 128 bits (16 bytes).");
 impl_register_size!(R32, 32, "A register with a size of 256 bits (32 bytes).");
 impl_register_size!(R64, 64, "A register with a size of 512 bits (64 bytes).");
 
+/// A type whose size matches a register of size `Size`.
+///
+/// Implemented for the primitive integers of exactly `Size::BYTES` bytes and for byte arrays
+/// of that length. `R3`, `R32` and `R64` have no matching primitive and use `[u8; N]`.
+/// Implement it for custom backing types as needed.
+pub trait RegisterBacking<Size: RegisterSizeInformation> {}
+
+macro_rules! impl_register_backing {
+    ($($size:ident => $($ty:ty),+;)+) => {
+        $($(impl RegisterBacking<$size> for $ty {})+)+
+    };
+}
+
+impl_register_backing! {
+    R1 => u8, i8, [u8; 1];
+    R2 => u16, i16, [u8; 2];
+    R3 => [u8; 3];
+    R4 => u32, i32, [u8; 4];
+    R8 => u64, i64, [u8; 8];
+    R16 => u128, i128, [u8; 16];
+    R32 => [u8; 32];
+    R64 => [u8; 64];
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

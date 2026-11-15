@@ -99,6 +99,21 @@ where
 
     /// The size of the register in bits.
     const SIZE_BITS: usize = Size::BITS;
+
+    /// The order in which the register's bytes are transferred.
+    ///
+    /// Irrelevant for single-byte registers. Defaults to [`ByteOrder::BigEndian`],
+    /// the common order for I²C and SPI devices.
+    const BYTE_ORDER: ByteOrder = ByteOrder::BigEndian;
+}
+
+/// The order in which the bytes of a multi-byte register are transferred.
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ByteOrder {
+    /// Most significant byte first.
+    BigEndian,
+    /// Least significant byte first.
+    LittleEndian,
 }
 
 /// A writable hardware register of specified byte size.
@@ -129,6 +144,44 @@ pub trait FromBits<B>: Sized {
     fn from_bits_ref(value: &B) -> Self;
 }
 
+/// Fallible conversion from bits/bytes, e.g. for registers with reserved or invalid bit patterns.
+///
+/// Implemented for every [`FromBits`] type with an [`Infallible`](core::convert::Infallible) error.
+/// Because of that blanket implementation, a type implements either [`FromBits`] or its own
+/// [`TryFromBits`] for a given `B`, never both: to make an infallible register fallible,
+/// replace its [`FromBits`] implementation.
+pub trait TryFromBits<B>: Sized {
+    /// The error returned if the bits do not form a valid value.
+    type Error;
+
+    /// Attempts to construct the value from an underlying bit/byte representation.
+    ///
+    /// # Errors
+    /// Returns [`Self::Error`] if `value` is not a valid bit pattern for this type.
+    #[inline]
+    fn try_from_bits(value: B) -> Result<Self, Self::Error> {
+        Self::try_from_bits_ref(&value)
+    }
+
+    /// Attempts to construct the value from a reference to an underlying bit/byte representation.
+    ///
+    /// # Errors
+    /// Returns [`Self::Error`] if `value` is not a valid bit pattern for this type.
+    fn try_from_bits_ref(value: &B) -> Result<Self, Self::Error>;
+}
+
+impl<T, B> TryFromBits<B> for T
+where
+    T: FromBits<B>,
+{
+    type Error = core::convert::Infallible;
+
+    #[inline]
+    fn try_from_bits_ref(value: &B) -> Result<Self, Self::Error> {
+        Ok(Self::from_bits_ref(value))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -142,5 +195,32 @@ mod tests {
     fn constant_size_usable() {
         // Ensure that the constant can be used to do calculations.
         let _ = [0_u8; TestRegister::SIZE_BYTES * 2];
+    }
+
+    #[derive(Debug, PartialEq)]
+    struct Bits(u8);
+
+    impl FromBits<u8> for Bits {
+        fn from_bits_ref(value: &u8) -> Self {
+            Self(*value)
+        }
+    }
+
+    #[test]
+    fn from_bits_delegates_to_ref() {
+        assert_eq!(Bits::from_bits(0x5A), Bits(0x5A));
+    }
+
+    #[test]
+    fn try_from_bits_is_infallible_for_from_bits() {
+        assert_eq!(
+            <Bits as TryFromBits<u8>>::try_from_bits(0x5A),
+            Ok(Bits(0x5A))
+        );
+    }
+
+    #[test]
+    fn byte_order_defaults_to_big_endian() {
+        assert_eq!(TestRegister::BYTE_ORDER, ByteOrder::BigEndian);
     }
 }

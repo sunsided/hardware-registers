@@ -5,6 +5,27 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `ByteOrder` and `HardwareRegister::BYTE_ORDER` (default `BigEndian`) describe the
+  wire order of multi-byte registers.
+- `TryFromBits` for registers with reserved or invalid bit patterns. Every `FromBits`
+  type implements it automatically with an `Infallible` error.
+- `sizes::RegisterBacking<Size>` marks types whose size matches a register of `Size`.
+- Write-only registers: `ReadableI2CRegister` / `ReadableSPIRegister` (plus their
+  8/16-bit markers) now express readability separately.
+
+### Changed
+
+- [**breaking**] `I2CRegister` / `SPIRegister` (and the `*8` / `*16` markers) no longer
+  imply readability or `ToBits`/`FromBits`. Use `Readable*` for reads and `Writable*`
+  for writes; `Writable*` now requires `ToBits`, `Readable*` requires `TryFromBits`.
+  To give an existing register a fallible decoder, replace its `FromBits` impl with a
+  `TryFromBits` impl: the blanket impl makes the two mutually exclusive (E0119).
+- [**breaking**] `I2CRegister::Backing` / `SPIRegister::Backing` must implement
+  `RegisterBacking<Size>`, rejecting backing types whose size differs from the register
+  (e.g. `u8` or `u32` on `R2`). 24-bit registers use `[u8; 3]`.
+
 ## [0.3.0] - 2026-11-15
 
 [0.3.0]: https://github.com/sunsided/hardware-registers/releases/tag/v0.3.0

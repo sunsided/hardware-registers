@@ -4,12 +4,15 @@ mod device_address;
 
 pub use crate::i2c::device_address::{DeviceAddress, DeviceAddress10, DeviceAddress7};
 pub use crate::register_address::{RegisterAddress, RegisterAddress16, RegisterAddress8};
-use crate::sizes::{RegisterSizeInformation, R1, R2};
-use crate::{FromBits, HardwareRegister, ToBits, WritableHardwareRegister};
+use crate::sizes::{RegisterBacking, RegisterSizeInformation, R1, R2};
+use crate::{HardwareRegister, ToBits, TryFromBits, WritableHardwareRegister};
 
-/// A readable I²C register.
-pub trait I2CRegister<D, R, Size>:
-    HardwareRegister<Size> + ToBits<Target = Self::Backing> + FromBits<Self::Backing>
+/// An I²C register: its addresses, size and backing type.
+///
+/// Access is expressed by [`ReadableI2CRegister`] and [`WritableI2CRegister`], which are
+/// implemented automatically for registers implementing [`TryFromBits`] (or [`FromBits`](crate::FromBits))
+/// and [`WritableHardwareRegister`] + [`ToBits`], respectively.
+pub trait I2CRegister<D, R, Size>: HardwareRegister<Size>
 where
     D: DeviceAddress,
     R: RegisterAddress,
@@ -22,13 +25,35 @@ where
     const REGISTER_ADDRESS: R;
 
     /// The backing type for the register, e.g. `u8` for an 8-bit register, or `u16` for a 10-bit register.
-    type Backing;
+    type Backing: RegisterBacking<Size>;
+}
+
+/// A readable I²C register.
+pub trait ReadableI2CRegister<D, R, Size>:
+    I2CRegister<D, R, Size> + TryFromBits<<Self as I2CRegister<D, R, Size>>::Backing>
+where
+    D: DeviceAddress,
+    R: RegisterAddress,
+    Size: RegisterSizeInformation,
+{
 }
 
 /// A writable I²C register.
 pub trait WritableI2CRegister<D, R, Size>:
-    I2CRegister<D, R, Size> + WritableHardwareRegister<Size>
+    I2CRegister<D, R, Size>
+    + WritableHardwareRegister<Size>
+    + ToBits<Target = <Self as I2CRegister<D, R, Size>>::Backing>
 where
+    D: DeviceAddress,
+    R: RegisterAddress,
+    Size: RegisterSizeInformation,
+{
+}
+
+/// Auto-implement [`ReadableI2CRegister`] for any decodable register.
+impl<I, D, R, Size> ReadableI2CRegister<D, R, Size> for I
+where
+    I: I2CRegister<D, R, Size> + TryFromBits<<I as I2CRegister<D, R, Size>>::Backing>,
     D: DeviceAddress,
     R: RegisterAddress,
     Size: RegisterSizeInformation,
@@ -38,36 +63,56 @@ where
 /// Auto-implement [`WritableI2CRegister`] for any fitting writable register.
 impl<I, D, R, Size> WritableI2CRegister<D, R, Size> for I
 where
-    I: I2CRegister<D, R, Size> + WritableHardwareRegister<Size>,
+    I: I2CRegister<D, R, Size>
+        + WritableHardwareRegister<Size>
+        + ToBits<Target = <I as I2CRegister<D, R, Size>>::Backing>,
     D: DeviceAddress,
     R: RegisterAddress,
     Size: RegisterSizeInformation,
 {
 }
 
-/// Marker trait for readable 8-bit I²C registers.
+/// Marker trait for 8-bit I²C registers.
 pub trait I2CRegister8<D>: I2CRegister<D, RegisterAddress8, R1, Backing = u8> + Copy
 where
     D: DeviceAddress,
 {
 }
 
-/// Marker trait for writable 8-bit I²C registers.
-pub trait WritableI2CRegister8<D>: I2CRegister8<D> + WritableHardwareRegister<R1>
+/// Marker trait for readable 8-bit I²C registers.
+pub trait ReadableI2CRegister8<D>:
+    I2CRegister8<D> + ReadableI2CRegister<D, RegisterAddress8, R1>
 where
     D: DeviceAddress,
 {
 }
 
-/// Marker trait for readable 16-bit I²C registers.
+/// Marker trait for writable 8-bit I²C registers.
+pub trait WritableI2CRegister8<D>:
+    I2CRegister8<D> + WritableI2CRegister<D, RegisterAddress8, R1>
+where
+    D: DeviceAddress,
+{
+}
+
+/// Marker trait for 16-bit I²C registers.
 pub trait I2CRegister16<D>: I2CRegister<D, RegisterAddress16, R2, Backing = u16> + Copy
 where
     D: DeviceAddress,
 {
 }
 
+/// Marker trait for readable 16-bit I²C registers.
+pub trait ReadableI2CRegister16<D>:
+    I2CRegister16<D> + ReadableI2CRegister<D, RegisterAddress16, R2>
+where
+    D: DeviceAddress,
+{
+}
+
 /// Marker trait for writable 16-bit I²C registers.
-pub trait WritableI2CRegister16<D>: I2CRegister16<D> + WritableHardwareRegister<R2>
+pub trait WritableI2CRegister16<D>:
+    I2CRegister16<D> + WritableI2CRegister<D, RegisterAddress16, R2>
 where
     D: DeviceAddress,
 {
@@ -81,10 +126,18 @@ where
 {
 }
 
+/// Auto-implement [`ReadableI2CRegister8`] for any fitting register.
+impl<I, D> ReadableI2CRegister8<D> for I
+where
+    I: I2CRegister8<D> + ReadableI2CRegister<D, RegisterAddress8, R1>,
+    D: DeviceAddress,
+{
+}
+
 /// Auto-implement [`WritableI2CRegister8`] for any fitting register.
 impl<I, D> WritableI2CRegister8<D> for I
 where
-    I: I2CRegister8<D> + WritableHardwareRegister<R1>,
+    I: I2CRegister8<D> + WritableI2CRegister<D, RegisterAddress8, R1>,
     D: DeviceAddress,
 {
 }
@@ -97,10 +150,18 @@ where
 {
 }
 
+/// Auto-implement [`ReadableI2CRegister16`] for any fitting register.
+impl<I, D> ReadableI2CRegister16<D> for I
+where
+    I: I2CRegister16<D> + ReadableI2CRegister<D, RegisterAddress16, R2>,
+    D: DeviceAddress,
+{
+}
+
 /// Auto-implement [`WritableI2CRegister16`] for any fitting register.
 impl<I, D> WritableI2CRegister16<D> for I
 where
-    I: I2CRegister16<D> + WritableHardwareRegister<R2>,
+    I: I2CRegister16<D> + WritableI2CRegister<D, RegisterAddress16, R2>,
     D: DeviceAddress,
 {
 }
@@ -108,6 +169,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::FromBits;
 
     #[derive(Copy, Clone)]
     struct Reg8(u8);
@@ -136,8 +198,45 @@ mod tests {
     }
 
     /// Generic driver code must see `u8` through the marker trait alone.
-    fn round_trip<T: WritableI2CRegister8<DeviceAddress7>>(value: u8) -> u8 {
-        T::from_bits(value).to_bits()
+    fn round_trip<T>(value: u8) -> u8
+    where
+        T: ReadableI2CRegister8<DeviceAddress7, Error = core::convert::Infallible>
+            + WritableI2CRegister8<DeviceAddress7>,
+    {
+        match T::try_from_bits(value) {
+            Ok(reg) => reg.to_bits(),
+            Err(e) => match e {},
+        }
+    }
+
+    /// Write-only register: no `FromBits` needed.
+    #[derive(Copy, Clone)]
+    struct Command;
+
+    impl HardwareRegister<R1> for Command {}
+    impl WritableHardwareRegister<R1> for Command {}
+
+    impl ToBits for Command {
+        type Target = u8;
+
+        fn to_bits(&self) -> u8 {
+            0xA5
+        }
+    }
+
+    impl I2CRegister<DeviceAddress7, RegisterAddress8, R1> for Command {
+        const DEFAULT_DEVICE_ADDRESS: DeviceAddress7 = DeviceAddress7::new(0x42);
+        const REGISTER_ADDRESS: RegisterAddress8 = RegisterAddress8::new(0x7E);
+        type Backing = u8;
+    }
+
+    fn write<T: WritableI2CRegister8<DeviceAddress7>>(reg: T) -> u8 {
+        reg.to_bits()
+    }
+
+    #[test]
+    fn write_only_register() {
+        assert_eq!(write(Command), 0xA5);
     }
 
     #[test]
