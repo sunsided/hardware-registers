@@ -1,7 +1,5 @@
 //! Traits and types for register addresses.
 
-use core::ops::Deref;
-
 /// A register address.
 pub trait RegisterAddress {
     /// The number of bits of the address.
@@ -24,96 +22,33 @@ impl RegisterAddress for u16 {
     const ADDR_BITS: usize = 16;
 }
 
-/// An 6-bit register address.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[allow(clippy::module_name_repetitions)]
-pub struct RegisterAddress6(u8);
+impl_address!(
+    /// A 6-bit register address.
+    RegisterAddress6(u8),
+    RegisterAddress,
+    6,
+    0b0011_1111
+);
 
-impl RegisterAddress6 {
-    /// Constructs a new [`RegisterAddress6`] from a specified value.
-    #[must_use]
-    pub const fn new(address: u8) -> Self {
-        Self(address & 0b0011_1111)
-    }
+impl_address!(
+    /// An 8-bit register address.
+    RegisterAddress8(u8),
+    RegisterAddress,
+    8,
+    u8::MAX
+);
 
-    /// Consumes self and returns the inner value.
-    #[must_use]
-    pub const fn into_inner(self) -> u8 {
-        self.0
-    }
-}
-
-impl RegisterAddress for RegisterAddress6 {
-    const ADDR_BITS: usize = 6;
-}
-
-impl From<u8> for RegisterAddress6 {
-    fn from(value: u8) -> Self {
-        Self::new(value)
-    }
-}
-
-/// An 8-bit register address.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[allow(clippy::module_name_repetitions)]
-pub struct RegisterAddress8(u8);
-
-impl RegisterAddress8 {
-    /// Constructs a new [`RegisterAddress8`] from a specified value.
-    #[must_use]
-    pub const fn new(address: u8) -> Self {
-        Self(address)
-    }
-
-    /// Consumes self and returns the inner value.
-    #[must_use]
-    pub const fn into_inner(self) -> u8 {
-        self.0
-    }
-}
-
-impl RegisterAddress for RegisterAddress8 {
-    const ADDR_BITS: usize = 8;
-}
-
-impl From<u8> for RegisterAddress8 {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-
-/// A 16-bit register address.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[allow(clippy::module_name_repetitions)]
-pub struct RegisterAddress16(u16);
-
-impl RegisterAddress16 {
-    /// Constructs a new [`RegisterAddress16`] from a specified value.
-    #[must_use]
-    pub const fn new(address: u16) -> Self {
-        Self(address)
-    }
-
-    /// Consumes self and returns the inner value.
-    #[must_use]
-    pub const fn into_inner(self) -> u16 {
-        self.0
-    }
-}
-
-impl RegisterAddress for RegisterAddress16 {
-    const ADDR_BITS: usize = 16;
-}
+impl_address!(
+    /// A 16-bit register address.
+    RegisterAddress16(u16),
+    RegisterAddress,
+    16,
+    u16::MAX
+);
 
 impl From<u8> for RegisterAddress16 {
     fn from(value: u8) -> Self {
         Self(value.into())
-    }
-}
-
-impl From<u16> for RegisterAddress16 {
-    fn from(value: u16) -> Self {
-        Self::new(value)
     }
 }
 
@@ -133,78 +68,22 @@ impl TryFrom<RegisterAddress16> for RegisterAddress8 {
     }
 }
 
-impl Deref for RegisterAddress6 {
-    type Target = u8;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl Deref for RegisterAddress8 {
-    type Target = u8;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl Deref for RegisterAddress16 {
-    type Target = u16;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl core::fmt::Debug for RegisterAddress6 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "0x{:02X}", self.0)?;
-        f.write_str(" (")?;
-        write!(f, "{:06b}", self.0)?;
-        f.write_str(")")
-    }
-}
-
-impl core::fmt::Debug for RegisterAddress8 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "0x{:02X}", self.0)?;
-        f.write_str(" (")?;
-        write!(f, "{:08b}", self.0)?;
-        f.write_str(")")
-    }
-}
-
-impl core::fmt::Debug for RegisterAddress16 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "0x{:04X}", self.0)?;
-        f.write_str(" (")?;
-        write!(f, "{:016b}", self.0)?;
-        f.write_str(")")
-    }
-}
-
-impl core::fmt::Display for RegisterAddress6 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-impl core::fmt::Display for RegisterAddress8 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-impl core::fmt::Display for RegisterAddress16 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reg6_from_u8_masked() {
+        let addr = RegisterAddress6::from(0xFF);
+        assert_eq!(addr.into_inner(), 0b0011_1111);
+        assert_eq!(addr.addr_bits(), 6);
+    }
+
+    #[test]
+    fn reg6_debug() {
+        let addr = RegisterAddress6::new(0b10_0101);
+        test_format::assert_debug_fmt!(addr, "0x25 (100101)");
+    }
 
     #[test]
     fn reg8_from_u8() {
@@ -240,13 +119,22 @@ mod tests {
     }
 
     #[test]
+    fn reg8_try_from_reg16() {
+        assert_eq!(
+            RegisterAddress8::try_from(RegisterAddress16::new(0xFF))
+                .map(RegisterAddress8::into_inner),
+            Ok(0xFF)
+        );
+        assert!(RegisterAddress8::try_from(RegisterAddress16::new(0x100)).is_err());
+    }
+
+    #[test]
     fn reg8_debug() {
         let addr = RegisterAddress8::new(0b0011_0011);
         test_format::assert_debug_fmt!(addr, "0x33 (00110011)");
     }
 
     #[test]
-    #[cfg(feature = "std")]
     fn reg8_display() {
         let addr = RegisterAddress8::new(0b1111_0000);
         test_format::assert_display_fmt!(addr, "0xF0 (11110000)");
@@ -259,9 +147,8 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "std")]
     fn reg16_display() {
         let addr = RegisterAddress16::new(0b1111_1111_0000_0000);
-        test_format::assert_debug_fmt!(addr, "0xFF00 (1111111100000000)");
+        test_format::assert_display_fmt!(addr, "0xFF00 (1111111100000000)");
     }
 }

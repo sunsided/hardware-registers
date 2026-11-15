@@ -3,10 +3,10 @@
 /// Accesses register size information.
 #[allow(clippy::module_name_repetitions)]
 pub trait RegisterSizeInformation {
-    /// Gets the register size in bits.
+    /// Gets the register size in bytes.
     const BYTES: usize;
 
-    /// Gets the register size in bytes.
+    /// Gets the register size in bits.
     const BITS: usize;
 
     /// Gets the register size in bytes.
@@ -55,10 +55,8 @@ macro_rules! impl_register_size {
             const BITS: usize = Self::BITS;
         }
 
-        #[cfg(feature = "std")]
-        #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
-        impl std::fmt::Display for $ident {
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
+        impl core::fmt::Display for $ident {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 write!(f, "{self:?}")
             }
         }
@@ -98,7 +96,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "std")]
     pub fn display() {
         test_format::assert_display_fmt!(R4, "4 bytes (32 bits)");
     }

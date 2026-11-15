@@ -37,59 +37,25 @@ where
 }
 
 /// Marker trait for readable 8-bit SPI registers.
-pub trait SPIRegister8:
-    SPIRegister<RegisterAddress8, R1, Backing = u8>
-    + HardwareRegister<R1>
-    + Copy
-    + Clone
-    + ToBits<Target = u8>
-    + FromBits<u8>
-{
-}
+pub trait SPIRegister8: SPIRegister<RegisterAddress8, R1, Backing = u8> + Copy {}
 
 /// Marker trait for writable 8-bit SPI registers.
-pub trait WritableSPIRegister8:
-    WritableSPIRegister<RegisterAddress8, R1> + WritableHardwareRegister<R1> + Copy + Clone
-{
-}
+pub trait WritableSPIRegister8: SPIRegister8 + WritableHardwareRegister<R1> {}
 
 /// Marker trait for readable 16-bit SPI registers.
-pub trait SPIRegister16:
-    SPIRegister<RegisterAddress16, R2> + HardwareRegister<R2> + Copy + Clone
-{
-}
+pub trait SPIRegister16: SPIRegister<RegisterAddress16, R2, Backing = u16> + Copy {}
 
 /// Marker trait for writable 16-bit SPI registers.
-pub trait WritableSPIRegister16:
-    WritableSPIRegister<RegisterAddress16, R2> + WritableHardwareRegister<R2> + Copy + Clone
-{
-}
+pub trait WritableSPIRegister16: SPIRegister16 + WritableHardwareRegister<R2> {}
 
 /// Auto-implement [`SPIRegister8`] for any fitting register.
-impl<I> SPIRegister8 for I where
-    I: SPIRegister<RegisterAddress8, R1, Backing = u8>
-        + HardwareRegister<R1>
-        + Copy
-        + Clone
-        + ToBits<Target = u8>
-        + FromBits<u8>
-{
-}
+impl<I> SPIRegister8 for I where I: SPIRegister<RegisterAddress8, R1, Backing = u8> + Copy {}
 
 /// Auto-implement [`WritableSPIRegister8`] for any fitting register.
-impl<I> WritableSPIRegister8 for I where
-    I: WritableSPIRegister<RegisterAddress8, R1> + WritableHardwareRegister<R1> + Copy + Clone
-{
-}
+impl<I> WritableSPIRegister8 for I where I: SPIRegister8 + WritableHardwareRegister<R1> {}
 
 /// Auto-implement [`SPIRegister16`] for any fitting register.
-impl<I> SPIRegister16 for I where
-    I: SPIRegister<RegisterAddress16, R2> + HardwareRegister<R2> + Copy + Clone
-{
-}
+impl<I> SPIRegister16 for I where I: SPIRegister<RegisterAddress16, R2, Backing = u16> + Copy {}
 
 /// Auto-implement [`WritableSPIRegister16`] for any fitting register.
-impl<I> WritableSPIRegister16 for I where
-    I: WritableSPIRegister<RegisterAddress16, R2> + WritableHardwareRegister<R2> + Copy + Clone
-{
-}
+impl<I> WritableSPIRegister16 for I where I: SPIRegister16 + WritableHardwareRegister<R2> {}

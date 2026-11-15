@@ -1,5 +1,3 @@
-use core::ops::Deref;
-
 /// A device address.
 pub trait DeviceAddress {
     /// The number of bits of the address.
@@ -12,73 +10,25 @@ pub trait DeviceAddress {
     }
 }
 
-/// An 7-bit device address.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[allow(clippy::module_name_repetitions)]
-pub struct DeviceAddress7(u8);
+impl_address!(
+    /// A 7-bit device address.
+    DeviceAddress7(u8),
+    DeviceAddress,
+    7,
+    0b0111_1111
+);
 
-impl DeviceAddress7 {
-    /// Constructs a new [`DeviceAddress7`] from a specified value.
-    ///
-    /// To ensure the provided value is a valid 7-bit address, the value is masked
-    /// with `0b0111_1111`.
-    #[must_use]
-    pub const fn new(address: u8) -> Self {
-        Self(address & 0b0111_1111_u8)
-    }
-
-    /// Consumes self and returns the inner value.
-    #[must_use]
-    pub const fn into_inner(self) -> u8 {
-        self.0
-    }
-}
-
-impl DeviceAddress for DeviceAddress7 {
-    const ADDR_BITS: usize = 7;
-}
-
-impl From<u8> for DeviceAddress7 {
-    fn from(value: u8) -> Self {
-        Self::new(value)
-    }
-}
-
-/// A 10-bit device address.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[allow(clippy::module_name_repetitions)]
-pub struct DeviceAddress10(u16);
-
-impl DeviceAddress10 {
-    /// Constructs a new [`DeviceAddress10`] from a specified value.
-    ///
-    /// To ensure the provided value is a valid 10-bit address, the value is masked
-    /// with `0b1111111111`.
-    #[must_use]
-    pub const fn new(address: u16) -> Self {
-        Self(address & 0b0000_0011_1111_1111_u16)
-    }
-
-    /// Consumes self and returns the inner value.
-    #[must_use]
-    pub const fn into_inner(self) -> u16 {
-        self.0
-    }
-}
-
-impl DeviceAddress for DeviceAddress10 {
-    const ADDR_BITS: usize = 10;
-}
+impl_address!(
+    /// A 10-bit device address.
+    DeviceAddress10(u16),
+    DeviceAddress,
+    10,
+    0b0000_0011_1111_1111
+);
 
 impl From<u8> for DeviceAddress10 {
     fn from(value: u8) -> Self {
         Self(value.into())
-    }
-}
-
-impl From<u16> for DeviceAddress10 {
-    fn from(value: u16) -> Self {
-        Self::new(value)
     }
 }
 
@@ -89,58 +39,12 @@ impl From<DeviceAddress7> for DeviceAddress10 {
 }
 
 impl TryFrom<DeviceAddress10> for DeviceAddress7 {
-    type Error = <u16 as TryInto<u8>>::Error;
+    type Error = core::num::TryFromIntError;
 
     fn try_from(value: DeviceAddress10) -> Result<Self, Self::Error> {
-        let value = value.into_inner();
-        let addr_8: u8 = value.try_into()?;
-        Ok(Self(addr_8))
-    }
-}
-
-impl Deref for DeviceAddress7 {
-    type Target = u8;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl Deref for DeviceAddress10 {
-    type Target = u16;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl core::fmt::Debug for DeviceAddress7 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "0x{:02X}", self.0)?;
-        f.write_str(" (")?;
-        write!(f, "{:07b}", self.0)?;
-        f.write_str(")")
-    }
-}
-
-impl core::fmt::Debug for DeviceAddress10 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "0x{:03X}", self.0)?;
-        f.write_str(" (")?;
-        write!(f, "{:010b}", self.0)?;
-        f.write_str(")")
-    }
-}
-
-impl core::fmt::Display for DeviceAddress7 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-impl core::fmt::Display for DeviceAddress10 {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{self:?}")
+        // i8 accepts exactly 0..=127, the valid 7-bit range.
+        let addr: i8 = value.into_inner().try_into()?;
+        Ok(Self::new(addr.unsigned_abs()))
     }
 }
 
@@ -188,13 +92,22 @@ mod tests {
     }
 
     #[test]
+    fn dev7_try_from_dev10() {
+        assert_eq!(
+            DeviceAddress7::try_from(DeviceAddress10::new(0x7F)).map(DeviceAddress7::into_inner),
+            Ok(0x7F)
+        );
+        assert!(DeviceAddress7::try_from(DeviceAddress10::new(0x80)).is_err());
+        assert!(DeviceAddress7::try_from(DeviceAddress10::new(0xFF)).is_err());
+    }
+
+    #[test]
     fn dev7_debug() {
         let addr = DeviceAddress7::new(0b111_0000);
         test_format::assert_debug_fmt!(addr, "0x70 (1110000)");
     }
 
     #[test]
-    #[cfg(feature = "std")]
     fn dev7_display() {
         let addr = DeviceAddress7::new(0b111_0000);
         test_format::assert_display_fmt!(addr, "0x70 (1110000)");
@@ -207,7 +120,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "std")]
     fn dev10_display() {
         let addr = DeviceAddress10::new(0b01_1111_0100);
         test_format::assert_display_fmt!(addr, "0x1F4 (0111110100)");
